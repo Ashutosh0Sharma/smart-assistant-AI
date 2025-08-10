@@ -1,0 +1,39 @@
+/* Force 1 column on mobile, single row on desktop */
+.filters-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    align-items: center;
+}
+
+/* Make Material fields truly expand */
+:host ::ng-deep .mat-mdc-form-field {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Buttons wrapper */
+.filters-actions {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Desktop breakpoint */
+@media (min-width: 1024px) {
+    .filters-row {
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+    }
+
+    /* Let fields grow; keep buttons compact */
+    .filters-row>.w-full {
+        flex: 1 1 0%;
+    }
+
+    .filters-actions {
+        width: auto;
+    }
+}

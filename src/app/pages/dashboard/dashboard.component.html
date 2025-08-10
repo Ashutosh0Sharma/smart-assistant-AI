@@ -1,1 +1,176 @@
-<p>dashboard works!</p>
+<!-- features/dashboard/dashboard.component.html -->
+<section class="space-y-4">
+
+    <!-- Filters row -->
+    <div class="filters-row">
+        <!-- Channel -->
+        <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Channel</mat-label>
+            <mat-select [(value)]="filters.channel">
+                <mat-option value="all">All</mat-option>
+                <mat-option value="web">Web</mat-option>
+                <mat-option value="whatsapp">WhatsApp</mat-option>
+                <mat-option value="slack">Slack</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <!-- Date range -->
+        <mat-form-field appearance="fill" class="w-full">
+            <mat-label>Date range</mat-label>
+            <mat-date-range-input [rangePicker]="picker" class="w-full">
+                <input matStartDate placeholder="Start date" [(ngModel)]="filters.startDate">
+                <input matEndDate placeholder="End date" [(ngModel)]="filters.endDate">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+
+        <!-- Actions -->
+        <div class="filters-actions">
+            <button mat-button (click)="resetFilters()">Reset</button>
+            <button mat-raised-button color="primary" (click)="applyFilters()">Apply</button>
+        </div>
+    </div>
+
+
+    <!-- KPI cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <mat-card class="p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm text-gray-500">Total Conversations</div>
+                    <div class="text-2xl font-semibold">{{ kpi.totalConversations | number }}</div>
+                    <div class="text-xs" [ngClass]="kpiDelta.conversations >= 0 ? 'text-green-600' : 'text-red-600'">
+                        {{ kpiDelta.conversations >= 0 ? '+' : ''}}{{kpiDelta.conversations}}% vs last period
+                    </div>
+                </div>
+                <mat-icon class="text-3xl">forum</mat-icon>
+            </div>
+        </mat-card>
+
+        <mat-card class="p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm text-gray-500">Active Users</div>
+                    <div class="text-2xl font-semibold">{{ kpi.activeUsers | number }}</div>
+                    <div class="text-xs" [ngClass]="kpiDelta.users >= 0 ? 'text-green-600' : 'text-red-600'">
+                        {{ kpiDelta.users >= 0 ? '+' : ''}}{{kpiDelta.users}}%
+                    </div>
+                </div>
+                <mat-icon class="text-3xl">groups</mat-icon>
+            </div>
+        </mat-card>
+
+        <mat-card class="p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm text-gray-500">Avg Response Time</div>
+                    <div class="text-2xl font-semibold">{{ kpi.avgResponseSec }}s</div>
+                    <mat-progress-bar mode="determinate" [value]="responseScore"></mat-progress-bar>
+                </div>
+                <mat-icon class="text-3xl">schedule</mat-icon>
+            </div>
+        </mat-card>
+
+        <mat-card class="p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm text-gray-500">CSAT</div>
+                    <div class="text-2xl font-semibold">{{ kpi.csat }}%</div>
+                    <div class="text-xs text-gray-600">Surveyed: {{kpi.csatSample}}</div>
+                </div>
+                <mat-icon class="text-3xl">thumb_up</mat-icon>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Conversations Over Time (Line) -->
+        <mat-card class="p-4 lg:col-span-2">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-base font-semibold">Conversations Over Time</h3>
+                <button mat-icon-button [matMenuTriggerFor]="menu1"><mat-icon>more_vert</mat-icon></button>
+                <mat-menu #menu1="matMenu">
+                    <button mat-menu-item (click)="exportPNG('conv')">Export PNG</button>
+                    <button mat-menu-item (click)="exportCSV('conv')">Export CSV</button>
+                </mat-menu>
+            </div>
+            <div class="h-64">
+                <canvas baseChart #convChart="base-chart" [type]="'line'" [data]="convData" [options]="convOptions">
+                </canvas>
+            </div>
+        </mat-card>
+
+        <!-- Channel Mix (Doughnut) -->
+        <mat-card class="p-4">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-base font-semibold">Channel Mix</h3>
+            </div>
+            <div class="h-64">
+                <canvas baseChart #mixChart="base-chart" [type]="'doughnut'" [data]="mixData" [options]="mixOptions">
+                </canvas>
+            </div>
+            <div class="mt-2 flex gap-2 justify-end">
+                <button mat-stroked-button (click)="exportPNG('mix')">Export PNG</button>
+                <button mat-stroked-button (click)="exportCSV('mix')">Export CSV</button>
+            </div>
+        </mat-card>
+    </div>
+
+
+
+    <!-- Recent conversations table -->
+    <mat-card class="p-4">
+        <div class="flex items-center justify-between mb-2">
+            <h3 class="text-base font-semibold">Recent Conversations</h3>
+            <button mat-button (click)="viewAll()">View All</button>
+        </div>
+
+        <table mat-table [dataSource]="recentData" class="w-full">
+
+            <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let row"> #{{row.id}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="user">
+                <th mat-header-cell *matHeaderCellDef> User </th>
+                <td mat-cell *matCellDef="let row"> {{row.user}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="channel">
+                <th mat-header-cell *matHeaderCellDef> Channel </th>
+                <td mat-cell *matCellDef="let row">
+                    <mat-chip [color]="channelColor(row.channel)" selected>{{row.channel}}</mat-chip>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="intent">
+                <th mat-header-cell *matHeaderCellDef> Intent </th>
+                <td mat-cell *matCellDef="let row"> {{row.intent}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef> Status </th>
+                <td mat-cell *matCellDef="let row">
+                    <span class="px-2 py-1 rounded-full text-xs"
+                        [ngClass]="row.resolved ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'">
+                        {{ row.resolved ? 'Resolved' : 'Pending' }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="updatedAt">
+                <th mat-header-cell *matHeaderCellDef> Updated </th>
+                <td mat-cell *matCellDef="let row"> {{row.updatedAt | date:'dd MMM, HH:mm'}} </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedCols"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedCols;"
+                class="hover:bg-[--mat-sys-surface-container-high] cursor-pointer" (click)="openConversation(row)">
+            </tr>
+        </table>
+    </mat-card>
+
+</section>

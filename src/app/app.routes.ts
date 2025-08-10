@@ -7,9 +7,12 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { FaqManagementComponent } from './pages/faq-management/faq-management.component';
 
 export const routes: Routes = [
+    {path:"", pathMatch:'full', redirectTo:'dashboard'},
     { path: "", component: LandingComponent },
     { path: 'login', component: LoginComponent },
-    { path: 'dashboard', component: DashboardComponent },
+    { path: 'dashboard', loadComponent() {
+        return import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent);
+    }, },
     { path: 'faq-management', component: FaqManagementComponent },
     { path: 'chat', component: ChatComponent },
     { path: 'analytics', component: AnalyticsComponent }
