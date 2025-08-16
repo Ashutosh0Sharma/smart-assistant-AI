@@ -1,1 +1,115 @@
-<p>faq-management works!</p>
+<div class="flex flex-col gap-4 p-4">
+    <!-- Filters -->
+    <div class="flex flex-wrap items-end gap-3">
+        <mat-form-field appearance="fill" class="w-full md:w-56">
+            <mat-label>Search</mat-label>
+            <input matInput placeholder="Question, answer or tag" [value]="q()"
+                (input)="q.set(($any($event.target)).value)" />
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full md:w-56">
+            <mat-label>Category</mat-label>
+            <mat-select [value]="category()" (selectionChange)="category.set($event.value)">
+                <mat-option value="all">All</mat-option>
+                <mat-option *ngFor="let c of categories()" [value]="c">{{ c }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="w-full md:w-56">
+            <mat-label>Status</mat-label>
+            <mat-select [value]="status()" (selectionChange)="status.set($event.value)">
+                <mat-option value="all">All</mat-option>
+                <mat-option value="draft">Draft</mat-option>
+                <mat-option value="published">Published</mat-option>
+                <mat-option value="archived">Archived</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <button class="flex self-center" mat-stroked-button (click)="clearFilters()" [disabled]="!q() && category()==='all' && status()==='all'">
+            Clear
+        </button>
+
+        <span class="flex-1"></span>
+
+        <button mat-flat-button color="primary" class="rounded-xl" (click)="openCreate()">
+            <mat-icon class="mr-1">add</mat-icon> New FAQ
+        </button>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white/5 rounded-2xl shadow p-2">
+        <table mat-table [dataSource]="data" matSort class="w-full">
+
+            <!-- Question + answer + tags -->
+            <ng-container matColumnDef="question">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Question</th>
+                <td  mat-cell *matCellDef="let row">
+                    <div class="font-medium pt-4">{{ row.question }}</div>
+                    <div class="text-sm opacity-70 line-clamp-2">{{ row.answer }}</div>
+                    <div class="mt-1 flex gap-2 pb-4 flex-wrap">
+                        <span *ngFor="let t of row.tags"
+                            class="text-xs px-2 py-0.5 rounded-full bg-slate-200">
+                            #{{ t }}
+                        </span>
+                    </div>
+                </td>
+            </ng-container>
+
+            <!-- Category -->
+            <ng-container matColumnDef="category">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Category</th>
+                <td mat-cell *matCellDef="let row">{{ row.category || '-' }}</td>
+            </ng-container>
+
+            <!-- Status -->
+            <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+                <td mat-cell *matCellDef="let row">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium shadow-sm" [ngClass]="{
+              'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300': row.status === 'draft',
+              'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300': row.status === 'published',
+              'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-200': row.status === 'archived'
+            }">
+                        {{ row.status }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <!-- Updated At -->
+            <ng-container matColumnDef="updatedAt">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Updated</th>
+                <td mat-cell *matCellDef="let row">{{ row.updatedAt | date: 'medium' }}</td>
+            </ng-container>
+
+            <!-- Actions -->
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let row" class="text-right">
+                    <div class="inline-flex items-center gap-1">
+                        <button mat-icon-button matTooltip="Edit" (click)="openEdit(row)">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button matTooltip="Delete" (click)="confirmDelete(row)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
+                </td>
+            </ng-container>
+
+            <!-- Header/Rows -->
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"
+                class="sticky top-0 bg-white/70 dark:bg-slate-900/70 backdrop-blur supports-[backdrop-filter]:backdrop-blur z-10">
+            </tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns" class="!h-12"></tr>
+        </table>
+
+        <!-- Empty state -->
+        <div *ngIf="!data.data.length" class="p-6 text-center opacity-70">
+            No FAQs match your filters.
+        </div>
+
+        <!-- Paginator (hidden when not needed) -->
+        <mat-paginator *ngIf="data.data.length > 10" [pageSize]="10"
+            [pageSizeOptions]="[5, 10, 25, 50]"></mat-paginator>
+    </div>
+</div>

@@ -1,1 +1,99 @@
-<p>chat works!</p>
+<section class="h-[calc(100vh-97px)] flex flex-col">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+        <div class="flex items-center gap-3">
+            <div class="size-10 rounded-full grid place-items-center bg-primary/10 text-primary">
+                <mat-icon>smart_toy</mat-icon>
+            </div>
+            <div>
+                <div class="font-semibold">Smart Support Bot</div>
+                <div class="text-xs text-gray-500">Multi‑channel · AWS Lex ready</div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-1">
+            <button mat-icon-button [matMenuTriggerFor]="chatMenu" aria-label="More">
+                <mat-icon>more_vert</mat-icon>
+            </button>
+            <mat-menu #chatMenu="matMenu">
+                <button mat-menu-item (click)="openMenu()"><mat-icon>analytics</mat-icon><span>View
+                        analytics</span></button>
+                <button mat-menu-item (click)="openMenu()"><mat-icon>history</mat-icon><span>Conversation
+                        history</span></button>
+                <button mat-menu-item (click)="openMenu()"><mat-icon>delete_sweep</mat-icon><span>Clear
+                        chat</span></button>
+            </mat-menu>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div #scrollRef class="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-[--mat-sys-surface-container-low]">
+        <ng-container *ngFor="let m of messages; trackBy: trackById">
+            <!-- Bot -->
+            <div *ngIf="m.sender === 'bot'" class="flex items-start gap-2">
+                <div class="size-8 rounded-full grid place-items-center bg-primary/10 text-primary shrink-0">
+                    <mat-icon class="text-base">smart_toy</mat-icon>
+                </div>
+                <div class="max-w-[80%] rounded-2xl px-3 py-2 bg-[--mat-sys-surface] shadow-sm">
+                    <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ m.text }}</p>
+                    <span class="block text-[10px] text-gray-500 mt-1">{{ m.time | date:'HH:mm' }}</span>
+                </div>
+            </div>
+
+            <!-- User -->
+            <div *ngIf="m.sender === 'user'" class="flex items-start gap-2 justify-end">
+                <div class="max-w-[80%] rounded-2xl px-3 py-2 bg-primary text-primary-foreground shadow-sm">
+                    <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ m.text }}</p>
+                    <span class="block text-[10px] opacity-80 mt-1 text-right">{{ m.time | date:'HH:mm' }}</span>
+                </div>
+                <div class="size-8 rounded-full grid place-items-center bg-[--mat-sys-surface] text-primary shrink-0">
+                    <mat-icon class="text-base">person</mat-icon>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- Typing indicator -->
+        <div *ngIf="typing" class="flex items-center gap-2">
+            <div class="size-8 rounded-full grid place-items-center bg-primary/10 text-primary shrink-0">
+                <mat-icon class="text-base">smart_toy</mat-icon>
+            </div>
+            <div class="px-3 py-2 rounded-2xl bg-[--mat-sys-surface] shadow-sm">
+                <span class="inline-flex gap-1">
+                    <span class="size-2 rounded-full bg-gray-400 animate-bounce"></span>
+                    <span class="size-2 rounded-full bg-gray-400 animate-bounce [animation-delay:120ms]"></span>
+                    <span class="size-2 rounded-full bg-gray-400 animate-bounce [animation-delay:240ms]"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick replies -->
+    <div class="px-4 pt-2">
+        <mat-chip-set aria-label="Quick replies" class="max-w-full">
+            <mat-chip *ngFor="let q of quickReplies" class="cursor-pointer" (click)="sendMessage(q)" selectable="false"
+                [removable]="false">
+                {{ q }}
+            </mat-chip>
+        </mat-chip-set>
+    </div>
+
+    <!-- Composer -->
+    <div class="px-4 pb-4 pt-2">
+        <mat-card class="p-2">
+            <div class="flex items-center gap-2">
+                <button mat-icon-button (click)="attachFile()" matTooltip="Attach">
+                    <mat-icon>attach_file</mat-icon>
+                </button>
+
+                <textarea [(ngModel)]="input" (keyup.enter)="sendMessage()" placeholder="Type a message…" class="flex-1 resize-none p-3 rounded-xl bg-gray-100 focus:outline-none focus:ring-0 border border-transparent focus:border-transparent" rows="1">
+</textarea>
+
+                <button mat-fab color="primary" [disabled]="!input.trim() || sending" (click)="sendMessage()">
+                    <mat-icon>send</mat-icon>
+                </button>
+            </div>
+        </mat-card>
+    </div>
+
+</section>

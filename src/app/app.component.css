@@ -6,3 +6,15 @@
 .custom-width{
   width: 200px!important;
 }
+
+/* Make sidenav content a flex column and allow children to size without extra scroll */
+.mat-drawer-content, mat-sidenav-content.app-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* critical: prevents nested scrollbars */
+}
+
+/* Optional: if you still see a second scrollbar on the content wrapper */
+.mat-drawer-content {
+  overflow: hidden; /* the scrolling happens in your page (main/messages), not here */
+}

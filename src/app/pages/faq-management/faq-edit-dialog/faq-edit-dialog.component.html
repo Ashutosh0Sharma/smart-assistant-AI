@@ -1,0 +1,62 @@
+<h2 mat-dialog-title class="text-xl font-semibold">
+    {{ data.mode === 'create' ? 'New FAQ' : 'Edit FAQ' }}
+</h2>
+
+<div mat-dialog-content class="flex flex-col gap-4 p-1">
+    <form [formGroup]="form" class="flex flex-col gap-4">
+        <mat-form-field appearance="fill">
+            <mat-label>Question</mat-label>
+            <input matInput formControlName="question" />
+            <mat-error *ngIf="form.controls.question.invalid && form.controls.question.touched">
+                Question must be at least 8 characters.
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill">
+            <mat-label>Answer</mat-label>
+            <textarea matInput rows="6" formControlName="answer"></textarea>
+            <mat-error *ngIf="form.controls.answer.invalid && form.controls.answer.touched">
+                Answer must be at least 10 characters.
+            </mat-error>
+        </mat-form-field>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <mat-form-field appearance="fill">
+                <mat-label>Category</mat-label>
+                <input matInput formControlName="category" placeholder="e.g., Integration" />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                    <mat-option value="draft">Draft</mat-option>
+                    <mat-option value="published">Published</mat-option>
+                    <mat-option value="archived">Archived</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium mb-2">Tags</label>
+            <div class="flex gap-2 items-center">
+                <input
+                    class="mat-input-element mat-mdc-input-element mdc-text-field__input appearance-none border rounded px-3 py-2 w-full"
+                    [formControl]="tagInput" placeholder="Add tag and press Enter" (keyup.enter)="addTag()" />
+                <button mat-stroked-button type="button" (click)="addTag()">Add</button>
+            </div>
+
+            <div class="mt-2 flex gap-2 flex-wrap">
+                <span *ngFor="let t of tags.controls; let i = index"
+                    class="px-2 py-0.5 rounded-full">
+                    {{ t.value }}
+                    <button type="button" class="ml-1 align-middle" (click)="removeTag(i)">✕</button>
+                </span>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div mat-dialog-actions class="flex justify-end gap-2 p-2">
+    <button mat-stroked-button (click)="close()">Cancel</button>
+    <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">Save</button>
+</div>
