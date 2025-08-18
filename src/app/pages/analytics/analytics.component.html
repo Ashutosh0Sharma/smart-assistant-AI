@@ -1,1 +1,186 @@
-<p>analytics works!</p>
+<div class="p-4 md:p-6 space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-semibold">Analytics</h1>
+            <p class="text-sm opacity-70">Overview of conversations, automation and CSAT</p>
+        </div>
+        <button mat-flat-button class="rounded-2xl" matTooltip="Refresh data (mock)">
+            <mat-icon>refresh</mat-icon>
+            Refresh
+        </button>
+    </div>
+
+    <!-- Filters -->
+    <mat-card class="rounded-2xl">
+        <div class="p-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <mat-form-field appearance="fill">
+                <mat-label>From</mat-label>
+                <input matInput [matDatepicker]="dp1" [value]="dateFrom()" (dateChange)="dateFrom.set($event.value!)" />
+                <mat-datepicker-toggle matSuffix [for]="dp1"></mat-datepicker-toggle>
+                <mat-datepicker #dp1></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="fill">
+                <mat-label>To</mat-label>
+                <input matInput [matDatepicker]="dp2" [value]="dateTo()" (dateChange)="dateTo.set($event.value!)" />
+                <mat-datepicker-toggle matSuffix [for]="dp2"></mat-datepicker-toggle>
+                <mat-datepicker #dp2></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="fill">
+                <mat-label>Channel</mat-label>
+                <mat-select [value]="channel()" (selectionChange)="channel.set($event.value)">
+                    <mat-option value="All">All</mat-option>
+                    <mat-option value="Web">Web</mat-option>
+                    <mat-option value="WhatsApp">WhatsApp</mat-option>
+                    <mat-option value="Slack">Slack</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div class="flex items-center">
+                <mat-chip-set class="w-full">
+                    <mat-chip matTooltip="Customer satisfaction">CSAT</mat-chip>
+                    <mat-chip matTooltip="Avg. time to resolve">AHT</mat-chip>
+                    <mat-chip matTooltip="Automation %">Auto</mat-chip>
+                </mat-chip-set>
+            </div>
+        </div>
+    </mat-card>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <mat-card class="rounded-2xl">
+            <div class="p-4 space-y-1">
+                <div class="text-sm opacity-70">Total Conversations</div>
+                <div class="text-2xl font-semibold">{{ summary().totalConversations }}</div>
+                <mat-progress-bar mode="determinate" [value]="100"></mat-progress-bar>
+            </div>
+        </mat-card>
+
+        <mat-card class="rounded-2xl">
+            <div class="p-4 space-y-1">
+                <div class="text-sm opacity-70">Avg Handle Time</div>
+                <div class="text-2xl font-semibold">{{ fmtSec(summary().avgHandleTimeSec) }}</div>
+                <mat-progress-bar mode="determinate"
+                    [value]="(summary().avgHandleTimeSec / 600) * 100"></mat-progress-bar>
+            </div>
+        </mat-card>
+
+        <mat-card class="rounded-2xl">
+            <div class="p-4 space-y-1">
+                <div class="text-sm opacity-70">CSAT</div>
+                <div class="text-2xl font-semibold">{{ summary().csat }}%</div>
+                <mat-progress-bar mode="determinate" [value]="summary().csat"></mat-progress-bar>
+            </div>
+        </mat-card>
+
+        <mat-card class="rounded-2xl">
+            <div class="p-4 space-y-1">
+                <div class="text-sm opacity-70">Automation Rate</div>
+                <div class="text-2xl font-semibold">{{ summary().automationRate }}%</div>
+                <mat-progress-bar mode="determinate" [value]="summary().automationRate"></mat-progress-bar>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Tabs -->
+    <mat-card class="rounded-2xl">
+        <mat-tab-group>
+            <mat-tab label="Trends">
+                <div class="p-4">
+                    <!-- Simple SVG line chart (no external lib) -->
+                    <svg viewBox="0 0 600 200" class="w-full h-52">
+                        <rect x="0" y="0" width="600" height="200" class="opacity-10"></rect>
+                        <polyline [attr.points]="trendPolyline()" fill="none" stroke="currentColor" stroke-width="3">
+                        </polyline>
+                    </svg>
+                    <div class="flex gap-3 mt-2 text-xs opacity-70">
+                        <span *ngFor="let p of trend()">{{ p.label }}</span>
+                    </div>
+                </div>
+            </mat-tab>
+
+            <mat-tab label="Conversations">
+                <div class="p-4">
+                    <div class="overflow-auto">
+                        <table mat-table [dataSource]="pagedRows()" class="min-w-[800px] w-full">
+                            <ng-container matColumnDef="id">
+                                <th mat-header-cell *matHeaderCellDef> ID </th>
+                                <td mat-cell *matCellDef="let r"> {{ r.id }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="createdAt">
+                                <th mat-header-cell *matHeaderCellDef> Date </th>
+                                <td mat-cell *matCellDef="let r"> {{ r.createdAt | date:'medium' }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="user">
+                                <th mat-header-cell *matHeaderCellDef> User </th>
+                                <td mat-cell *matCellDef="let r"> {{ r.user }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="channel">
+                                <th mat-header-cell *matHeaderCellDef> Channel </th>
+                                <td mat-cell *matCellDef="let r">
+                                    <mat-chip>{{ r.channel }}</mat-chip>
+                                </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="intent">
+                                <th mat-header-cell *matHeaderCellDef> Intent </th>
+                                <td mat-cell *matCellDef="let r"> {{ r.intent }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="durationSec">
+                                <th mat-header-cell *matHeaderCellDef> Duration </th>
+                                <td mat-cell *matCellDef="let r"> {{ fmtSec(r.durationSec) }} </td>
+                            </ng-container>
+
+                            <ng-container matColumnDef="resolution">
+                                <th mat-header-cell *matHeaderCellDef> Resolution </th>
+                                <td mat-cell *matCellDef="let r">
+                                    <mat-chip [ngClass]="{
+                    'bg-green-600 text-white': r.resolution === 'Resolved',
+                    'bg-amber-600 text-white': r.resolution === 'Escalated',
+                    'bg-rose-600 text-white': r.resolution === 'Unresolved'}">
+                                        {{ r.resolution }}
+                                    </mat-chip>
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                            <tr mat-row *matRowDef="let r; columns: displayedColumns"></tr>
+                        </table>
+                    </div>
+
+                    <!-- Simple paginator (local) -->
+                    <div class="flex items-center justify-end gap-3 mt-3 text-sm">
+                        <button mat-stroked-button
+                            (click)="onPage({ pageIndex: Math.max(0, pageIndex()-1), pageSize: pageSize() })"
+                            [disabled]="pageIndex()===0">
+                            <mat-icon>chevron_left</mat-icon>
+                            Prev
+                        </button>
+                        <div>Page {{ pageIndex()+1 }}</div>
+                        <button mat-stroked-button (click)="onPage({ pageIndex: pageIndex()+1, pageSize: pageSize() })"
+                            [disabled]="(pageIndex()+1) * pageSize() >= rows().length">
+                            Next
+                            <mat-icon>chevron_right</mat-icon>
+                        </button>
+
+                        <mat-form-field appearance="fill" class="w-28">
+                            <mat-label>Rows</mat-label>
+                            <mat-select [value]="pageSize()"
+                                (selectionChange)="onPage({ pageIndex: 0, pageSize: $event.value })">
+                                <mat-option [value]="5">5</mat-option>
+                                <mat-option [value]="10">10</mat-option>
+                                <mat-option [value]="20">20</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+            </mat-tab>
+        </mat-tab-group>
+    </mat-card>
+</div>

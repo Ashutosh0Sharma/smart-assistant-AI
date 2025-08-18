@@ -25,6 +25,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule } from '@angular/material/dialog';
 // END faq-imports
 
+// ====== ADDED START: MatTabs for Analytics ======
+import { MatTabsModule } from '@angular/material/tabs';
+// ====== ADDED END: MatTabs for Analytics ======
+
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 export const SHARED_IMPORTS = [
@@ -54,4 +58,8 @@ export const SHARED_IMPORTS = [
   MatInputModule,
   MatDialogModule,
   // END faq-shared-exports
+
+  // ====== ADDED START: MatTabs for Analytics ======
+  MatTabsModule,
+  // ====== ADDED END: MatTabs for Analytics ======
 ];

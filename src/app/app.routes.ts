@@ -13,7 +13,7 @@ export const routes: Routes = [
     {
         path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard.component').then((m) => m.DashboardComponent)
     },
-    { path: 'faq-management', component: FaqManagementComponent },
+    { path: 'faq-management', loadComponent: ()=> import('./pages/faq-management/faq-management.component').then((m) => m.FaqManagementComponent)},
     { path: 'chat', loadComponent: () => import('./pages/chat/chat.component').then(m => m.ChatComponent) },
-    { path: 'analytics', component: AnalyticsComponent }
+    { path: 'analytics', loadComponent: () => import('./pages/analytics/analytics.component').then(m => m.AnalyticsComponent) }
 ];
