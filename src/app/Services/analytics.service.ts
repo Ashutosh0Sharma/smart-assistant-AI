@@ -18,6 +18,8 @@ export class AnalyticsService {
     automationRate: 63,
   });
 
+  
+
   // trend points (last 12 buckets)
   readonly trendBuckets = signal<{ label: string; value: number }[]>([
     { label: 'Jan', value: 70 },
